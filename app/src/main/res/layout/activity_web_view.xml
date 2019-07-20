@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:background="@color/white">
+
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/white"
+        app:contentInsetLeft="0dp"
+        app:contentInsetStart="0dp"
+        android:elevation="4dp">
+
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <TextView
+                android:id="@+id/mainTitle"
+                android:text="WebView"
+                android:textSize="20sp"
+                android:textColor="@color/black"
+                android:layout_centerInParent="true"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+        </RelativeLayout>
+    </android.support.v7.widget.Toolbar>
+
+    <WebView
+        android:layout_below="@+id/toolbar"
+        android:id="@+id/webView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+
+    <RelativeLayout
+        android:visibility="gone"
+        android:id="@+id/webViewErrorLayout"
+        android:layout_below="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:layout_marginTop="48dp"
+    >
+
+        <ImageView
+            android:id="@+id/image"
+            android:layout_centerHorizontal="true"
+            android:src="@drawable/img_search_nothing"
+            android:layout_width="250dp"
+            android:layout_height="200dp" />
+
+        <TextView
+            android:id="@+id/errorTitle"
+            android:layout_below="@+id/image"
+            android:layout_marginTop="24dp"
+            android:textSize="15sp"
+            android:textColor="@color/black"
+            android:text="@string/internet_not_working_error_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"/>
+
+        <TextView
+            android:layout_below="@+id/errorTitle"
+            android:layout_marginTop="4dp"
+            android:textSize="13sp"
+            android:textColor="@color/black"
+            android:text="@string/internet_not_working_info_text"
+            android:layout_centerHorizontal="true"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+        <Button
+            android:id="@+id/repeatBtn"
+            android:background="@drawable/shape_error_btn"
+            android:text="@string/repeat_text"
+            android:textColor="@color/red"
+            android:textSize="15sp"
+            android:layout_alignParentBottom="true"
+            android:layout_marginBottom="32dp"
+            android:layout_marginLeft="24dp"
+            android:layout_marginRight="24dp"
+            android:layout_centerHorizontal="true"
+            android:stateListAnimator="@null"
+            android:layout_width="180dp"
+            android:layout_height="wrap_content"/>
+    </RelativeLayout>
+</RelativeLayout>

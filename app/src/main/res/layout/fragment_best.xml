@@ -1,0 +1,22 @@
+<RelativeLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context="kz.production.mukhit.hackernews.ui.stories.top.view.TopFragment">
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/bestRecylerView"
+        android:layout_marginLeft="2dp"
+        android:paddingLeft="6dp"
+        android:paddingRight="6dp"
+        android:layout_marginRight="2dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        android:scrollbars="vertical"
+        android:fadeScrollbars="false"
+        android:scrollbarAlwaysDrawVerticalTrack="true"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
+</RelativeLayout>

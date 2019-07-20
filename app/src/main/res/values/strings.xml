@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">HackerNews</string>
+
+
+    <string name="new_stories">New</string>
+    <string name="top_stories">Top</string>
+    <string name="best_stories">Best</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+
+    <string name="internet_not_working_error_text">Подключитесь к Интернету</string>
+    <string name="internet_not_working_info_text">Проверьте подключение к сети.</string>
+    <string name="repeat_text">ПОВТОРИТЬ</string>
+    <string name="main_title">Hacker News</string>
+</resources>
