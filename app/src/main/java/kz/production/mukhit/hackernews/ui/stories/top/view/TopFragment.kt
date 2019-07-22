@@ -7,15 +7,12 @@ import android.content.Intent
 import android.os.Bundle
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import kotlinx.android.synthetic.main.fragment_top.*
 import kz.production.mukhit.hackernews.R
 import kz.production.mukhit.hackernews.data.model.Story
-import kz.production.mukhit.hackernews.data.remote.AppDatabase
-import kz.production.mukhit.hackernews.data.remote.DatabaseClient
 import kz.production.mukhit.hackernews.data.remote.entity.StoryEntity
 import kz.production.mukhit.hackernews.ui.base.view.BaseFragment
 import kz.production.mukhit.hackernews.ui.comment.view.CommentActivity
@@ -42,7 +39,7 @@ class TopFragment : BaseFragment(), TopView, StoryItemClickListener {
 
     val currentStoryList : MutableLiveData<List<Long>> = MutableLiveData()
     val loadingState : MutableLiveData<STATE> = MutableLiveData()
-    lateinit var mDatabase : AppDatabase
+    val fragmentStoryType : MutableLiveData<TYPE> = MutableLiveData()
 
 
     override fun onCreateView(
@@ -59,7 +56,15 @@ class TopFragment : BaseFragment(), TopView, StoryItemClickListener {
 
 
     override fun setUp() {
-        mDatabase = DatabaseClient.getInstance(getBaseActivity()!!).appDatabase
+
+        if(arguments?.getString("type")!=null){
+            val type = arguments?.getString("type")
+            when(type){
+                "new"-> fragmentStoryType.value = TYPE.NEW
+                "top"-> fragmentStoryType.value = TYPE.TOP
+                "best"-> fragmentStoryType.value = TYPE.BEST
+            }
+        }
 
         topRecylerView.layoutManager = mLayoutManager
         topRecylerView.adapter=mAdapter
@@ -71,13 +76,22 @@ class TopFragment : BaseFragment(), TopView, StoryItemClickListener {
         loadingState.observe(this, Observer{
             if(it == STATE.NOT_LOADING){
                 presenter.cancelAllLoading()
+                mAdapter.removeNullData()
+            }
+            else if(it == STATE.LOADING){
+                mAdapter.addNullData()
             }
         })
 
         mAdapter.setList(ArrayList())
         if(isNetworkAvailable()) {
             loadingState.value = STATE.LOADING
-            presenter.onLoadingTopStoryList()
+            when(fragmentStoryType.value){
+                TYPE.NEW -> presenter.onLoadingStoryList(0)
+                TYPE.TOP -> presenter.onLoadingStoryList(1)
+                TYPE.BEST -> presenter.onLoadingStoryList(2)
+            }
+
         }
         else{
             PAGE=0
@@ -129,10 +143,28 @@ class TopFragment : BaseFragment(), TopView, StoryItemClickListener {
         presenter.onLoadStoryItem(list?.subList(PAGE*LIMIT,(PAGE+1) * LIMIT))
     }
 
-    override fun getAllStoryInDb(limit: Int, offset: Int) {
-        val allStories = mDatabase.storyDao().getTopStories(limit,offset,true)
+    override fun setStoryList(storyList: List<Story>?) {
+        loadingState.value = STATE.NOT_LOADING
 
-        for(item in allStories){
+        topRecylerView.post(Runnable {
+            for(item in storyList!!){
+                insertToDb(item)
+                mAdapter.setStoryItem(item)
+            }
+        })
+    }
+
+    override fun getAllStoryInDb(limit: Int, offset: Int) {
+        when(fragmentStoryType.value){
+            TYPE.NEW -> presenter.loadRemoteStoryList(limit,offset,0)
+            TYPE.TOP -> presenter.loadRemoteStoryList(limit,offset,1)
+            TYPE.BEST -> presenter.loadRemoteStoryList(limit,offset,2)
+        }
+    }
+
+    override fun setAllStoryInDb(storyList: List<StoryEntity>) {
+
+        for(item in storyList){
             val story = Story()
 
             story.id = item.id
@@ -150,40 +182,27 @@ class TopFragment : BaseFragment(), TopView, StoryItemClickListener {
         loadingState.value = STATE.FROM_ROOM
     }
 
-    override fun setStoryList(storyList: List<Story>?) {
-
-        topRecylerView.post(Runnable {
-            for(item in storyList!!){
-                insertToDb(item)
-                mAdapter.setStoryItem(item)
-            }
-        })
-
-        loadingState.value = STATE.NOT_LOADING
-    }
-
     override fun insertToDb(story : Story) {
-        val storyListInDb = mDatabase.storyDao().getStoryById(story.id!!)
-        if(storyListInDb.size > 0){
-            storyListInDb[0].isTop = true
-            mDatabase.storyDao().update(storyListInDb[0])
-        }
-        else{
-            val storyEntity = StoryEntity()
-            storyEntity.id = story.id
-            storyEntity.author = story.author
-            storyEntity.commentCount = story.commentCount
-            storyEntity.title = story.title
-            storyEntity.score = story.score
-            storyEntity.time = story.time
-            storyEntity.url = story.url
-            storyEntity.type = story.type
-            storyEntity.isTop = true
+        val storyEntity = StoryEntity()
+        storyEntity.id = story.id
+        storyEntity.author = story.author
+        storyEntity.commentCount = story.commentCount
+        storyEntity.title = story.title
+        storyEntity.score = story.score
+        storyEntity.time = story.time
+        storyEntity.url = story.url
+        storyEntity.type = story.type
 
-            mDatabase.storyDao().insert(storyEntity)
+        when(fragmentStoryType.value){
+            TYPE.NEW -> storyEntity.isNew = true
+            TYPE.TOP -> storyEntity.isTop = true
+            TYPE.BEST -> storyEntity.isBest = true
         }
+
+        presenter.loadStory(storyEntity)
     }
 
+    //on item clicks
     override fun onCommentClick(story : Story) {
         val intent = Intent(activity?.baseContext,CommentActivity::class.java)
         intent.putExtra("story",story)
@@ -202,5 +221,11 @@ class TopFragment : BaseFragment(), TopView, StoryItemClickListener {
         LOADING,
         NOT_LOADING,
         FROM_ROOM
+    }
+
+    enum class TYPE{
+        NEW,
+        TOP,
+        BEST
     }
 }

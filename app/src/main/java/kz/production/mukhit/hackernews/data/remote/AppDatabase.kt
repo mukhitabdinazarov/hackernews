@@ -14,5 +14,6 @@ import kz.production.mukhit.hackernews.data.remote.entity.StoryEntity
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun storyDao(): StoryDao
+
     abstract fun commentDao(): CommentDao
 }

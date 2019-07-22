@@ -99,17 +99,19 @@ class CommentAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
             commentText.text = comment.text
             authorText.text = comment.author
             if(comment.time != null) {
-                dateText.text = PrettyTime().format(Date(comment.time * 1000))
+                dateText.text = PrettyTime().format(Date(comment.time!! * 1000))
             }
 
             var result = 0
             if(comment.kids != null){
-                result = comment.kids.size
-                replayText.setOnClickListener {
+                result = comment.kids!!.size
 
-                    replyClickListener.onReplyClick(comment,position)
-                }
             }
+
+            replayText.setOnClickListener {
+                replyClickListener.onReplyClick(comment,position)
+            }
+
             replayText.text = result.toString() + " replies"
         }
 

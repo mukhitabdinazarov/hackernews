@@ -10,32 +10,38 @@ import android.database.sqlite.SQLiteConstraintException
 
 
 @Dao
-abstract class StoryDao{
+interface StoryDao{
+
+    @Query("SELECT * FROM stories")
+    fun getAllStory() : List<StoryEntity>
 
     @Query("SELECT * FROM stories WHERE id =:storyId")
-    abstract fun getStoryById(storyId : Long): List<StoryEntity>
+    fun getStoryById(storyId : Long): List<StoryEntity>
 
-    @Query("SELECT * FROM stories WHERE is_new =:isNew LIMIT :limit OFFSET :offset ")
-    abstract fun getNewStories(limit : Int, offset : Int,isNew : Boolean): List<StoryEntity>
+    @Query("SELECT * FROM stories WHERE id =:storyId")
+    fun getStory(storyId : Long): StoryEntity
 
-    @Query("SELECT * FROM stories WHERE is_top =:isTop LIMIT :limit OFFSET :offset ")
-    abstract fun getTopStories(limit : Int, offset : Int,isTop : Boolean): List<StoryEntity>
+    @Query("SELECT * FROM stories WHERE is_new =:isNew ORDER BY time DESC LIMIT :limit OFFSET :offset ")
+    fun getNewStories(limit : Int, offset : Int,isNew : Boolean): List<StoryEntity>
 
-    @Query("SELECT * FROM stories WHERE is_best =:isBest LIMIT :limit OFFSET :offset ")
-    abstract fun getBestStories(limit : Int, offset : Int,isBest : Boolean): List<StoryEntity>
+    @Query("SELECT * FROM stories WHERE is_top =:isTop ORDER BY time DESC LIMIT :limit OFFSET :offset ")
+    fun getTopStories(limit : Int, offset : Int,isTop : Boolean): List<StoryEntity>
+
+    @Query("SELECT * FROM stories WHERE is_new =:isNew  AND is_top =:isTop AND is_best =:isBest LIMIT :limit OFFSET :offset ")
+    fun getStories(limit : Int, offset : Int,isNew : Boolean, isTop : Boolean, isBest : Boolean): List<StoryEntity>
+
+
+    @Query("SELECT * FROM stories WHERE is_best =:isBest ORDER BY time DESC LIMIT :limit OFFSET :offset ")
+    fun getBestStories(limit : Int, offset : Int,isBest : Boolean): List<StoryEntity>
 
 
     @Insert(onConflict = OnConflictStrategy.FAIL)
-    abstract fun insert(entity: StoryEntity)
+    fun insert(entity: StoryEntity)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun insertAll(stories: List<StoryEntity>)
 
     @Update(onConflict = OnConflictStrategy.FAIL)
-    abstract fun update(entity: StoryEntity)
+    fun update(entity: StoryEntity)
 
-    open fun upsert(model: StoryEntity) {
-        try {
-            insert(model)
-        }catch (exception: SQLiteConstraintException) {
-            update(model)
-        }
-    }
 }

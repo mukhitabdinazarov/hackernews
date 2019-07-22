@@ -10,6 +10,7 @@ import javax.inject.Inject
 import com.google.gson.JsonObject
 import io.reactivex.disposables.Disposable
 import kz.production.mukhit.hackernews.data.model.Story
+import kz.production.mukhit.hackernews.data.remote.entity.StoryEntity
 import kz.production.mukhit.hackernews.ui.base.presenter.BasePresenter
 import kz.production.mukhit.hackernews.utils.SchedulerProvider
 import retrofit2.Response
@@ -22,10 +23,10 @@ class TopPresenter <V : TopView, I : TopMvpInteractor> @Inject internal construc
     private val TAG = "TopPresenter"
     private var observer : Disposable? = null
 
-    override fun onLoadingTopStoryList() {
+    override fun onLoadingStoryList(type : Int) {
 
         interactor?.let {
-            it.getTopStoryList()
+            it.getStoryList(type)
                 .compose(schedulerProvider.ioToMainSingleScheduler())
                 .subscribe({response->
                     Log.d(TAG,"onLoadingTopStoryList() " + response.message())
@@ -44,7 +45,7 @@ class TopPresenter <V : TopView, I : TopMvpInteractor> @Inject internal construc
             .flatMap{numberList -> Observable.fromIterable(numberList)}
             .flatMap{number -> getItemObservable(number)}
             .compose(schedulerProvider.ioToMainObservableScheduler())
-                .toList()
+            .toList()
             .subscribe({response->
                 getView()?.setStoryList(response)
 
@@ -60,5 +61,85 @@ class TopPresenter <V : TopView, I : TopMvpInteractor> @Inject internal construc
 
     override fun cancelAllLoading() {
         observer?.dispose()
+    }
+
+    //room
+    override fun storyIsEmpty(story: StoryEntity){
+        interactor?.let {
+            it.storyIsEmpty(story.id!!.toLong())
+                .compose(schedulerProvider.ioToMainObservableScheduler())
+                .subscribe({ response ->
+                    if (response) {}
+                }, {
+                })
+        }
+
+    }
+
+    override fun loadStory(story : StoryEntity?) {
+        interactor?.let {
+            it.getStoryById(story?.id!!)
+                .compose(schedulerProvider.ioToMainObservableScheduler())
+                .subscribe({ response ->
+                    if(response != null){
+                        response.isTop = true
+                        updateStory(response)
+                    }
+                    else{
+                        saveStory(story)
+                    }
+
+                }, { error ->
+                    saveStory(story)
+                })
+        }
+
+    }
+
+    override fun saveStory(story: StoryEntity) {
+        interactor?.let {
+            it.insertStory(story)
+                .compose(schedulerProvider.ioToMainObservableScheduler())
+                .subscribe({response->
+                    if(response){
+
+                    }
+                    else{
+
+                    }
+                },{error->
+
+                })
+        }
+    }
+
+    override fun updateStory(story: StoryEntity) {
+        interactor?.let {
+            it.updateStory(story)
+                .compose(schedulerProvider.ioToMainObservableScheduler())
+                .subscribe({response->
+                    if(response){
+
+                    }
+                    else{
+
+                    }
+                },{error->
+
+                })
+        }
+    }
+
+    override fun loadRemoteStoryList(limit: Int, offset: Int,type : Int) {
+        interactor?.let {
+            it.getRemoteStories(limit, offset, type)
+                .compose(schedulerProvider.ioToMainObservableScheduler())
+                .subscribe({response->
+                    if(response!=null)
+                        getView()?.setAllStoryInDb(response)
+                },{error->
+
+                })
+        }
     }
 }

@@ -41,5 +41,4 @@ data class StoryEntity (
         @ColumnInfo(name = "is_best")
         var isBest: Boolean? = false
 
-
 )

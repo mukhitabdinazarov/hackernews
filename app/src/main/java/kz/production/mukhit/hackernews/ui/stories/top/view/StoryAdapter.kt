@@ -10,48 +10,72 @@ import android.widget.TextView
 import kz.production.mukhit.hackernews.R
 import kz.production.mukhit.hackernews.data.model.Story
 import org.ocpsoft.prettytime.PrettyTime
+import org.xmlpull.v1.XmlPullParser.COMMENT
 import java.util.*
 import kotlin.collections.ArrayList
 
-class StoryAdapter : RecyclerView.Adapter<StoryAdapter.StoryViewHolder>() {
 
+
+
+
+class StoryAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+    private val LOADING = 0
+    private val STORY = 1
     private lateinit var storyList : ArrayList<Story>
     private lateinit var storyItemClickListener : StoryItemClickListener
 
-    override fun onCreateViewHolder(parent: ViewGroup, p1: Int): StoryViewHolder {
+    override fun onCreateViewHolder(parent: ViewGroup, position: Int): RecyclerView.ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
-        val view = inflater.inflate(R.layout.item_story_list, parent, false)
 
-        return StoryViewHolder(view)
+        when(getItemViewType(position)){
+            STORY-> return StoryViewHolder(inflater.inflate(R.layout.item_story_list, parent, false))
+            else -> return ProgressBarViewHolder(inflater.inflate(R.layout.item_loading_list, parent, false))
+        }
     }
 
     override fun getItemCount(): Int {
         return storyList.size
     }
 
-    override fun onBindViewHolder(holder: StoryViewHolder, position : Int) {
+    override fun getItemViewType(position: Int): Int {
+        return if (storyList[position].id != (-1).toLong())
+            STORY
+        else
+            LOADING
+    }
 
-        storyList[position].let{
+    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position : Int) {
 
-            holder.title.text = it.title
-            holder.author.text = it.author
-            holder.points.text = it.score.toString()
-            holder.comments.text = "Show all (" + it.commentCount + ") comments"
+        when (holder) {
+            is StoryViewHolder -> {
+                storyList[position].let{
 
-            holder.comments.setOnClickListener {
-                storyItemClickListener.onCommentClick(storyList[position])
+                    holder.title.text = it.title
+                    holder.author.text = it.author
+                    holder.points.text = it.score.toString()
+                    holder.comments.text = "Show all (" + it.commentCount + ") comments"
+
+                    holder.comments.setOnClickListener {
+                        storyItemClickListener.onCommentClick(storyList[position])
+                    }
+
+                    holder.containerView.setOnClickListener {
+                        storyItemClickListener.onItemClick(storyList[position].url.toString())
+                    }
+
+                    if(it.time != null) {
+                        holder.date.text = PrettyTime().format(Date(it.time!! * 1000))
+                    }
+
+
+                }
             }
+            is ProgressBarViewHolder->{
 
-            holder.containerView.setOnClickListener {
-                storyItemClickListener.onItemClick(storyList[position].url.toString())
             }
-
-            if(it.time != null) {
-                holder.date.text = PrettyTime().format(Date(it.time!! * 1000))
-            }
-
 
         }
+
     }
 
     class StoryViewHolder (itemView: View) : RecyclerView.ViewHolder(itemView){
@@ -65,6 +89,21 @@ class StoryAdapter : RecyclerView.Adapter<StoryAdapter.StoryViewHolder>() {
 
     }
 
+    inner class ProgressBarViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView){
+
+    }
+
+    fun addNullData() {
+        val story = Story()
+        story.id = -1
+        storyList.add(story)
+        notifyItemInserted(itemCount - 1)
+    }
+
+    fun removeNullData(){
+        storyList.removeAt(itemCount - 1)
+        notifyItemRemoved(itemCount - 1)
+    }
     fun setList(list : ArrayList<Story>){
         storyList = list
         notifyDataSetChanged()

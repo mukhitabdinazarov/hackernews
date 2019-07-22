@@ -24,6 +24,9 @@ data class CommentEntity (
     var text: String? = null,
 
     @ColumnInfo(name = "parent_id")
-    var parentId: Long? = null
+    var parentId: Long? = null,
+
+    @ColumnInfo(name = "reply_count")
+    var replyCounts: Int? = null
 
 )

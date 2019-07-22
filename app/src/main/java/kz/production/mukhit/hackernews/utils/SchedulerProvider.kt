@@ -7,6 +7,7 @@ import io.reactivex.schedulers.Schedulers
 /**
  * Created by mukhit on 15/11/18.
  */
+
 class SchedulerProvider {
 
     fun <T> ioToMainObservableScheduler(): ObservableTransformer<T, T> = ObservableTransformer { upstream ->

@@ -5,6 +5,7 @@ import io.reactivex.Observable
 import io.reactivex.disposables.CompositeDisposable
 import kz.production.mukhit.hackernews.data.model.Comment
 import kz.production.mukhit.hackernews.data.model.Story
+import kz.production.mukhit.hackernews.data.remote.entity.CommentEntity
 import kz.production.mukhit.hackernews.ui.base.presenter.BasePresenter
 import kz.production.mukhit.hackernews.ui.comment.interactor.CommentMvpInteractor
 import kz.production.mukhit.hackernews.ui.comment.view.CommentMvpView
@@ -69,4 +70,50 @@ class CommentPresenter <V : CommentMvpView, I : CommentMvpInteractor>
 
     override fun getReplyItemObservable(id: Long) = interactor?.getReplies(id)!!
 
+
+
+    override fun getRemoteComments(parentId : Long?,limit : Int,offset : Int) {
+        if(parentId!=null) {
+            interactor?.let {
+                it.getRemoteComments(parentId, limit, offset)
+                    .compose(schedulerProvider.ioToMainObservableScheduler())
+                    .subscribe({ response ->
+                        getView()?.onSetRemoteComments(response)
+                    }, { error ->
+                        Log.e(TAG,"Failed loading comment with error message " + error.message,error)
+                    })
+            }
+        }
+    }
+
+    override fun getRemoteComments(parentId: Long?) = interactor?.getRemoteComments(parentId!!)
+
+
+    override fun getRemoteReplies(parentId: Long?, position : Int) {
+        if(parentId!=null) {
+            interactor?.let {
+                it.getRemoteComments(parentId)
+                    .compose(schedulerProvider.ioToMainObservableScheduler())
+                    .subscribe({ response ->
+                        getView()?.onSetRemoteReplies(response,position,parentId)
+                    }, { error ->
+                        Log.e(TAG, "Failed loading comment with error message " + error.message, error)
+                    })
+            }
+        }
+    }
+
+
+
+    override fun insertComment(commentEntity: CommentEntity) {
+        interactor?.let {
+            it.insertToDb(commentEntity)
+                .compose(schedulerProvider.ioToMainObservableScheduler())
+                .subscribe({respnse->
+
+                },{error->
+                    Log.e(TAG,"Failed inserting comment with error message " + error.message,error)
+                })
+        }
+    }
 }

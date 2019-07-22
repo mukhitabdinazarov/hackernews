@@ -39,12 +39,12 @@ class CommentReplyAdapter internal constructor(private var replyList : ArrayList
             commentText.text = comment.text
             authorText.text = comment.author
             if(comment.time != null) {
-                dateText.text = PrettyTime().format(Date(comment.time * 1000))
+                dateText.text = PrettyTime().format(Date(comment.time!! * 1000))
             }
 
             var result = 0
             if(comment.kids != null){
-                result = comment.kids.size
+                result = comment.kids!!.size
 
             }
             replayText.visibility = View.GONE
